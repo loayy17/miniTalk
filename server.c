@@ -1,25 +1,32 @@
-// #include <signal.h>
-// #include <stdio.h>
-// #include <stdlib.h>
-// #include <unistd.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lalhindi <lalhindi@student.42amman.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/14 20:16:56 by lalhindi          #+#    #+#             */
+/*   Updated: 2025/01/14 20:25:34 by lalhindi         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "miniTalk.h"
-void	printNum(int sigNum, siginfo_t *siginfo, void *context)
+
+void	print_num(int sig_num, siginfo_t *siginfo, void *context)
 {
 	(void)context;
-	if (sigNum == SIGUSR2)
+	if (sig_num == SIGUSR2)
 		g_mini.character = (g_mini.character << 1) | 1;
-	else if (sigNum == SIGUSR1)
+	else if (sig_num == SIGUSR1)
 		g_mini.character = (g_mini.character << 1);
-    
 	g_mini.counter++;
 	if (g_mini.counter == 8)
 	{
 		if (g_mini.character == 0)
 		{
 			write(1, "\n", 1);
-			if(kill(siginfo->si_pid, SIGUSR1) < 0)
-                exit(1);
+			if (kill(siginfo->si_pid, SIGUSR1) < 0)
+				exit(1);
 		}
 		else
 			write(1, &g_mini.character, 1);
@@ -30,19 +37,15 @@ void	printNum(int sigNum, siginfo_t *siginfo, void *context)
 
 int	main(int argc, char **argv)
 {
-	struct sigaction action;
-	if (argc != 1 || argv[1])
-	{
-		ft_printf("Server must be run without arguments\n");
-		return (1);
-	}
+	struct sigaction	action;
 
+	if (argc != 1 || argv[1])
+		return (1);
 	action.sa_flags = SA_SIGINFO;
-	action.sa_sigaction = &printNum;
-    sigemptyset(&action.sa_mask);
-    
+	action.sa_sigaction = &print_num;
+	sigemptyset(&action.sa_mask);
 	g_mini.character = 0;
-    g_mini.counter = 0;
+	g_mini.counter = 0;
 	ft_printf("Waiting for signals. PID: %d\n", getpid());
 	if (sigaction(SIGUSR1, &action, NULL) < 0)
 	{
